@@ -1,0 +1,1358 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Doable Budget</title>
+<meta name="description" content="See what's safe to spend until payday. ADHD-friendly. Your numbers stay on your device. No account, no bank login, no subscription.">
+<meta name="theme-color" content="#24170F">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="robots" content="noindex">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Doable Budget">
+<style>
+@font-face{font-family:'Instrument Serif';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/instrument-serif.woff2) format('woff2')}
+@font-face{font-family:'Instrument Serif';font-style:italic;font-weight:400;font-display:swap;src:url(fonts/instrument-serif-italic.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400 700;font-display:swap;src:url(fonts/inter-var.woff2) format('woff2')}
+/* ============ Tokens ============ */
+:root{
+  --bg:#24170F; --card:#34241B; --card2:#3E2C22; --line:#4A372C; --tx:#F6EBE3; --mu:#B8A194;
+  --sunrise:#EDA77A; --honey:#E6BC6B; --rose:#D99A97; --terra:#C66F55; --sage:#A7BC9D; --forest:#5E8C6E; --mauve:#A97A8E;
+  --on-accent:#2B1A12; --shadow:0 18px 40px rgba(0,0,0,.35); --glow:rgba(237,167,122,.16);
+  --serif:'Instrument Serif',Georgia,'Times New Roman',serif;
+  --sans:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --r:20px; --tab:66px;
+}
+:root[data-theme="light"]{
+  --bg:#F3ECE4; --card:#FFFDFA; --card2:#F1E7DD; --line:#E3D5C8; --tx:#2E1F17; --mu:#7A5C4E;
+  --sunrise:#B8652F; --honey:#946A22; --rose:#A65552; --terra:#A9553D; --sage:#55754B; --forest:#4C7A5C; --mauve:#8E5F74;
+  --on-accent:#FFF8F2; --shadow:0 14px 34px rgba(80,50,30,.10); --glow:rgba(194,112,63,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--tx);font-family:var(--sans);-webkit-text-size-adjust:100%}
+body{min-height:100vh;min-width:320px;font-size:15px;line-height:1.45;overflow-x:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--sunrise);outline-offset:2px}
+.serif{font-family:var(--serif);font-weight:400}
+.mu{color:var(--mu)}
+.hide{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.blk{display:block}
+/* iOS status bar (black-translucent): keep it readable on the cream theme too */
+.statusbar{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#24170F;z-index:30;pointer-events:none}
+
+/* ============ Shell ============ */
+.app{max-width:560px;margin:0 auto;padding:0 16px calc(var(--tab) + 96px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 0 6px}
+.brand{font-size:11px;font-weight:700;letter-spacing:.32em;color:var(--sunrise)}
+.date{font-size:12px;color:var(--mu);font-weight:500;margin-top:2px}
+.iconbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1px solid var(--line)}
+.iconbtn svg{width:18px;height:18px}
+h1.title{font-family:var(--serif);font-weight:400;font-size:38px;line-height:1.05;letter-spacing:-.5px;margin:8px 0 4px}
+.sub{color:var(--mu);font-size:14px;margin-bottom:14px}
+
+.strip{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--card2);border:1px dashed var(--line);border-radius:14px;padding:8px 8px 8px 14px;font-size:13px;margin:6px 0 4px;flex-wrap:wrap}
+.strip b{font-weight:600}
+.strip .acts{display:flex;gap:6px;flex-wrap:wrap}
+.strip .btn{white-space:nowrap;flex:none}
+.banner{background:color-mix(in srgb,var(--honey) 12%,var(--card));border:1px solid color-mix(in srgb,var(--honey) 45%,var(--line));border-radius:16px;padding:14px 16px;margin:8px 0 10px;font-size:14px}
+.banner b{display:block;font-weight:600;margin-bottom:2px}
+
+/* ============ Cards ============ */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.card.soft{background:var(--card2)}
+.lab{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);display:flex;align-items:center;gap:8px}
+.lab .dot{width:8px;height:8px;border-radius:50%}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.list .item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.list .item:first-child{border-top:0}
+.item .name{flex:1;min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .meta{display:block;font-size:12px;color:var(--mu);font-weight:400}
+.item .amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.tap{width:100%;text-align:left}
+.link{font-size:12px;color:var(--mu);text-decoration:none;padding:6px 2px}
+.link:hover{color:var(--tx)}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;padding:22px 20px 18px;background:radial-gradient(120% 90% at 100% 0%,var(--glow),transparent 60%),var(--card)}
+.hero .big{font-family:var(--serif);font-size:84px;line-height:.95;letter-spacing:-2px;margin:10px 0 4px;background:linear-gradient(90deg,var(--sunrise),var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.06em;font-variant-numeric:lining-nums;overflow-wrap:anywhere}
+.hero .big.over{background:linear-gradient(90deg,var(--honey),var(--sunrise));-webkit-background-clip:text;background-clip:text}
+.hero .perday{font-size:20px;color:var(--tx);font-weight:500}
+.hero .perday span{color:var(--mu);font-weight:400}
+.hero .note{font-size:13px;color:var(--mu);margin-top:6px}
+.bar{height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--honey),var(--sunrise))}
+.prog{margin-top:16px}
+.prog .row{font-size:13px;flex-wrap:wrap;gap:2px 12px}
+.prog b{font-weight:600}
+.mathbtn{margin-top:14px;font-size:13px;color:var(--mu);display:inline-flex;align-items:center;gap:6px;padding:8px 0}
+.mathbtn svg{width:14px;height:14px;transition:transform .2s}
+.mathbtn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.math .item{padding:9px 0;font-size:14px}
+.math .item .name{white-space:normal}
+.math .sign{width:16px;color:var(--mu);font-weight:600;text-align:center;flex:none}
+.math .total .name,.math .total .amt{font-weight:700}
+.math .carry .amt{color:var(--sage)}
+.math .carry.neg .amt{color:var(--honey)}
+.mathtitle{display:none}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;padding:12px 18px;font-weight:600;font-size:15px;background:var(--card2);border:1px solid var(--line);min-height:46px;text-decoration:none;text-align:center}
+.btn.primary{background:linear-gradient(135deg,var(--honey),var(--sunrise) 55%,var(--rose));color:var(--on-accent);border:0}
+:root[data-theme="light"] .btn.primary{background:linear-gradient(135deg,#B57A2E,#B8652F 55%,#A65552)}
+.btn.block{width:100%}
+.btn.sm{min-height:36px;padding:7px 12px;font-size:13px;border-radius:11px}
+.btn.ghost{background:transparent}
+.btn.quiet{background:transparent;border-color:transparent;color:var(--mu);font-weight:500}
+.btn svg{width:18px;height:18px}
+.logbtn{width:100%;min-height:58px;font-size:17px;border-radius:18px;margin-bottom:12px}
+
+/* Switch */
+.switchrow{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);width:100%;text-align:left}
+.switchrow b{font-weight:600;display:block}
+.switchrow .small{margin-top:2px}
+.sw{flex:none;width:50px;height:30px;border-radius:99px;background:var(--card2);border:1px solid var(--line);position:relative;transition:background .2s}
+.sw:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--mu);transition:transform .2s,background .2s}
+[aria-checked="true"] .sw{background:var(--sage);border-color:var(--sage)}
+[aria-checked="true"] .sw:after{transform:translateX(20px);background:var(--on-accent)}
+
+/* Status pills (no red: Paid? uses rose, soon uses honey) */
+.pill{font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;white-space:nowrap;border:1px solid transparent}
+.pill.paid{color:var(--sage);background:color-mix(in srgb,var(--sage) 14%,transparent)}
+.pill.today{color:var(--on-accent);background:var(--sunrise)}
+.pill.soon{color:var(--honey);background:color-mix(in srgb,var(--honey) 15%,transparent)}
+.pill.ask{color:var(--rose);border-color:color-mix(in srgb,var(--rose) 55%,transparent);background:color-mix(in srgb,var(--rose) 10%,transparent)}
+.pill.later{color:var(--mu);background:var(--card2)}
+.dday{width:42px;height:42px;border-radius:12px;background:var(--card2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;line-height:1}
+.dday b{font-family:var(--serif);font-size:20px;font-weight:400}
+.dday small{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin-top:2px}
+
+/* Kind / check-in */
+.kind{font-family:var(--serif);font-style:italic;font-size:24px;line-height:1.2;margin-top:8px}
+.check{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.check .box{width:30px;height:30px;border-radius:10px;border:2px solid var(--line);display:grid;place-items:center;flex:none}
+.check.on .box{background:var(--sage);border-color:var(--sage);color:var(--on-accent)}
+.check .box svg{width:16px;height:16px}
+
+/* Nudge */
+.nudge{border-color:color-mix(in srgb,var(--honey) 45%,var(--line));background:color-mix(in srgb,var(--honey) 7%,var(--card))}
+.nudge .ttl{font-weight:600;margin:6px 0 2px}
+.nudge .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* Calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;text-align:center}
+.cal .h{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--mu);padding-bottom:4px}
+.cal .d{aspect-ratio:1/1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;position:relative;font-variant-numeric:tabular-nums}
+.cal .d.out{opacity:0}
+.cal .d.past{color:var(--mu)}
+.cal .d.now{background:var(--card2);font-weight:700}
+.cal .d.pay{box-shadow:inset 0 0 0 2px var(--sunrise)}
+.cal .dots{display:flex;gap:3px;height:6px;margin-top:3px}
+.cal .dots i{width:5px;height:5px;border-radius:50%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mu);margin-top:12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.legend i.ring{width:12px;height:12px;border:2px solid var(--sunrise)}
+
+/* Spending */
+.catbars .cb{margin-top:12px}
+.catbars .row{font-size:14px}
+.day-h{font-size:12px;font-weight:600;color:var(--mu);margin:14px 0 2px;letter-spacing:.04em}
+.cdot{width:10px;height:10px;border-radius:50%;flex:none}
+.inflow{color:var(--sage)}
+
+/* Goals */
+.goal{padding:14px 0;border-top:1px solid var(--line)}
+.row + .goal{border-top:0}
+.goal .nums{font-family:var(--serif);font-size:30px;line-height:1.1;margin:4px 0 8px}
+.goal .nums span{color:var(--mu);font-size:20px}
+.goal .bar i{background:linear-gradient(90deg,var(--forest),var(--sage))}
+.goal.debt .bar i{background:linear-gradient(90deg,var(--mauve),var(--rose))}
+
+/* Setup */
+.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px}
+.seg button{padding:11px 8px;border-radius:12px;border:1px solid var(--line);background:var(--card2);font-weight:500;font-size:14px;min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--tx);color:var(--bg);border-color:var(--tx);font-weight:600}
+.field{display:block;margin-top:12px}
+.field>span{display:block;font-size:12px;font-weight:600;color:var(--mu);margin-bottom:6px}
+.field input,.field select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:16px;outline:none;min-height:46px}
+.field input:focus{border-color:var(--sunrise)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.small{font-size:12px;color:var(--mu);margin-top:10px}
+.stack{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+
+/* ============ Tab bar ============ */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs nav{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--tab)}
+.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:var(--mu);text-decoration:none}
+.tabs a svg{width:22px;height:22px}
+.tabs a[aria-current="page"]{color:var(--tx)}
+.tabs a[aria-current="page"] svg{color:var(--sunrise)}
+.fab{position:fixed;z-index:21;right:max(16px,calc(50% - 264px));bottom:calc(var(--tab) + 16px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;display:grid;place-items:center;box-shadow:var(--shadow);background:linear-gradient(135deg,var(--honey),var(--sunrise) 55%,var(--rose));color:var(--on-accent)}
+.fab svg{width:28px;height:28px}
+.side{display:none}
+
+/* ============ Sheet ============ */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(15,8,4,.55);opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:41;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .25s ease,visibility 0s .25s;max-height:92vh;overflow:auto;visibility:hidden}
+.sheet.on{transform:none;visibility:visible;transition:transform .25s ease}
+.grab{width:40px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 10px}
+.sheet h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.1}
+.amount{display:flex;align-items:baseline;gap:4px;border-bottom:2px solid var(--line);padding:6px 0 4px;margin:14px 0 6px}
+.amount:focus-within{border-color:var(--sunrise)}
+.amount .cur{font-family:var(--serif);font-size:40px;color:var(--mu)}
+.amount input{flex:1;min-width:0;background:none;border:0;outline:none;font-family:var(--serif);font-size:56px;line-height:1.1;font-variant-numeric:lining-nums}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:99px;border:1px solid var(--line);background:var(--card2);font-weight:500;font-size:14px;min-height:44px}
+.chip[aria-pressed="true"]{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.minirow{display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.minirow input[type=text]{flex:1;min-width:140px}
+.minirow input{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;outline:none;min-height:44px}
+.minirow input[type=date]{width:160px}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--mu);min-height:44px}
+.toggle input{width:20px;height:20px;accent-color:var(--sage)}
+.steps{counter-reset:s;margin-top:10px}
+.steps li{list-style:none;counter-increment:s;display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0}
+.steps li:before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--card2);color:var(--sunrise)}
+.facts{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.facts div{background:var(--card2);border-radius:14px;padding:12px}
+.facts b{display:block;font-family:var(--serif);font-weight:400;font-size:30px;line-height:1}
+.facts span{font-size:12px;color:var(--mu)}
+.urlbox{display:block;margin-top:10px;padding:12px 14px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:600;word-break:break-all;user-select:all}
+
+/* Toast */
+.toast{position:fixed;z-index:50;left:50%;bottom:calc(var(--tab) + 90px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;visibility:hidden;transition:opacity .2s,transform .2s,visibility 0s .2s;background:var(--tx);color:var(--bg);border-radius:14px;padding:10px 10px 10px 16px;display:flex;gap:12px;align-items:center;font-size:14px;font-weight:500;box-shadow:var(--shadow);width:max-content;max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto;visibility:visible;transition:opacity .2s,transform .2s}
+.toast button{font-weight:700;padding:8px 12px;border-radius:9px;background:color-mix(in srgb,var(--bg) 12%,transparent);color:var(--bg)}
+
+/* Welcome */
+.welcome{min-height:100vh;display:flex;flex-direction:column;justify-content:center;max-width:460px;margin:0 auto;padding:calc(32px + env(safe-area-inset-top)) 20px 32px}
+.welcome h1{font-family:var(--serif);font-weight:400;font-size:54px;line-height:1;letter-spacing:-1px;margin:14px 0 12px}
+.welcome h1 em{font-style:italic;background:linear-gradient(90deg,var(--sunrise),var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent;padding-right:.06em}
+.welcome p{color:var(--mu);font-size:16px}
+.trust{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 26px}
+.trust span{font-size:12px;font-weight:600;padding:6px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--mu)}
+.welcome .privacy{font-size:13px;margin-top:18px}
+.welcome .restore{margin-top:6px;align-self:flex-start}
+
+.empty{text-align:center;padding:26px 12px}
+.empty .serif{font-size:26px;line-height:1.15;margin-bottom:6px}
+
+/* ============ Desktop ============ */
+.col{display:contents}
+@media (min-width:1000px){
+  .app{max-width:1300px;margin:0;padding:0 48px 60px 290px}
+  .tabs,.fab{display:none}
+  .side{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:240px;padding:28px 18px;border-right:1px solid var(--line);background:var(--bg);z-index:10}
+  .side .brand{margin:0 10px 4px}
+  .side .tag{font-family:var(--serif);font-style:italic;font-size:22px;margin:0 10px 26px;line-height:1.1}
+  .side a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:var(--mu);text-decoration:none;font-weight:600;font-size:15px}
+  .side a svg{width:20px;height:20px}
+  .side a[aria-current="page"]{background:var(--card);color:var(--tx)}
+  .side a[aria-current="page"] svg{color:var(--sunrise)}
+  .side .btn{margin-top:18px}
+  .side .foot{margin-top:auto;font-size:12px;color:var(--mu);padding:0 10px}
+  .top{padding-top:26px}
+  .top .brand{display:none}
+  .top .date{font-size:13px}
+  .grid2{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);gap:16px;align-items:start}
+  .col{display:block}
+  .hero .big{font-size:112px}
+  .phone-only{display:none!important}
+  .phone-math{display:none}
+  .mathtitle{display:block;margin:18px 0 0;padding-top:14px;border-top:1px solid var(--line)}
+  .sheet{bottom:auto;top:50%;border-radius:26px;border-bottom:1px solid var(--line);transform:translateY(-40%);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s,visibility 0s .2s;max-width:520px}
+  .sheet.on{transform:translateY(-50%);opacity:1;pointer-events:auto;transition:opacity .2s,transform .2s}
+  .toast{bottom:28px}
+}
+@media (max-width:999px){
+  .o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}.o5{order:5}.o6{order:6}.o7{order:7}.o8{order:8}
+  .grid2{display:flex;flex-direction:column}
+  .desk-only{display:none!important}
+  .math.closed{display:none}
+}
+@media (max-width:380px){
+  .hero .big{font-size:68px}
+  h1.title{font-size:34px}
+  .welcome h1{font-size:46px}
+  .two{grid-template-columns:1fr}
+  .seg button{font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{transition-duration:0s!important;transition-delay:0s!important;animation:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="statusbar" aria-hidden="true"></div>
+<div id="root"></div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><span></span><button type="button">Undo</button></div>
+<input type="file" id="restoreFile" accept=".json,application/json" class="hide" aria-hidden="true" tabindex="-1">
+
+<script>
+'use strict';
+const BUILD = {"target":"app","version":"1.0.0","storeKey":"doable-budget","appUrl":"https://doablesheets.app/app/","demoUrl":"https://doablesheets.app/demo/","shopUrl":"","sw":true};
+/* =====================================================================
+   Doable Budget App
+   One file, no dependencies. Data lives in this browser's localStorage.
+   BUILD is injected by build.js: target = app | offline | demo.
+   ===================================================================== */
+if (typeof BUILD === 'undefined') window.BUILD = { target:'app', version:'dev', storeKey:'doable-budget', appUrl:'', demoUrl:'', shopUrl:'', sw:false };
+const IS_DEMO = BUILD.target === 'demo';
+const IS_FILE = BUILD.target === 'offline';
+const KEY = BUILD.storeKey;            // same key for hosted + offline file, a different one for the demo
+const EX_KEY = KEY + '-examples';      // where "look at examples" lives, so it never touches your own numbers
+const SCHEMA = 2;
+const MAX_CARRY = 12;                  // carry-over looks back at most this many paychecks
+
+/* ---------- Icons ---------- */
+const I = {
+  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
+  bills:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.3" fill="currentColor"/></svg>',
+  spend:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-3-2-3 2-3-2-3 2z"/><path d="M9 8.5h6M9 12h6M9 15.5h3.5"/></svg>',
+  goals:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.8C19.5 16.4 12 21 12 21z"/></svg>',
+  setup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+};
+const TABS = [['today','Today'],['bills','Bills'],['spending','Spending'],['goals','Goals'],['setup','Setup']];
+
+/* Copy taken from the live Doable Budget "Kind words" tab */
+const KIND = [
+  'Looking is the hard part. You looked.',
+  'One number. That’s all today asks.',
+  'Over plan? That’s information, not failure.',
+  'Missed a week? Start from today. No catch-up.',
+  'Fun money is part of the plan.',
+  'Small checks beat big promises.',
+  'You can be messy and still be in charge.',
+  'Money mistakes are normal. Shame isn’t required.',
+];
+const PRIVACY = 'Your numbers stay on your device. No account, no bank login, no subscription.';
+
+/* ---------- Dates: always local calendar days as YYYY-MM-DD ---------- */
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d, 12); };  // noon: safe across DST
+const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+const dim = (y, m) => new Date(y, m + 1, 0).getDate();
+const dateIn = (y, m, day) => { const d = new Date(y, m, 1); const yy = d.getFullYear(), mm = d.getMonth(); return iso(new Date(yy, mm, Math.min(day, dim(yy, mm)), 12)); };
+const ym = s => s.slice(0, 7);
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const nice = s => { const d = parse(s); return `${MON[d.getMonth()]} ${d.getDate()}`; };
+const niceLong = s => { const d = parse(s); return `${DOW[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`; };
+const isoDate = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+function realToday() { const q = new URLSearchParams(location.search).get('today'); return isoDate(q) ? q : iso(new Date()); }
+let TODAY = realToday();
+
+/* ---------- Helpers ---------- */
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function num(v) {
+  if (typeof v === 'number') return isFinite(v) ? v : 0;
+  let s = String(v ?? '').replace(/[^\d.,\-]/g, '');
+  if (s.includes(',') && s.includes('.')) s = s.replace(/,/g, '');          // 1,234.50
+  else if (/,\d{1,2}$/.test(s)) s = s.replace(/\./g, '').replace(',', '.'); // 12,40 or 1.234,5
+  else s = s.replace(/,/g, '');                                            // 1,234
+  const n = parseFloat(s); return isFinite(n) ? n : 0;
+}
+const r2 = n => Math.round(n * 100) / 100;
+const $ = sel => document.querySelector(sel);
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+function money(n, whole) {
+  const c = String(S.settings.currency || '$');
+  const cur = esc(c) + (/^[A-Za-z]{2,}$/.test(c) ? ' ' : '');
+  const a = Math.abs(n);
+  const s = whole ? Math.floor(a + 1e-9).toLocaleString('en-US')
+                  : a.toLocaleString('en-US', { minimumFractionDigits: (Math.round(a * 100) % 100) ? 2 : 0, maximumFractionDigits: 2 });
+  return (n < 0 ? '−' : '') + cur + s;
+}
+
+/* ---------- State ---------- */
+const DEFAULT_CATS = [
+  { id:'groc', name:'Groceries',   color:'sage' },
+  { id:'eat',  name:'Eating out',  color:'sunrise' },
+  { id:'move', name:'Transport',   color:'mauve' },
+  { id:'home', name:'Home & kids', color:'honey' },
+  { id:'fun',  name:'Fun money',   color:'rose' },
+];
+function blank() {
+  return {
+    v: SCHEMA, demo: false, theme: 'dark',
+    settings: { currency:'$', freq:'biweekly', pay:0, anchor:TODAY, semi:[1, 15], freshFrom:null, carry:true, startedOn:null },
+    cats: DEFAULT_CATS.map(c => ({ ...c })),
+    bills: [], paid: {}, yearly: [], spends: [], goals: [], debts: [], checkins: {},
+    meta: { lastBackup:null, backupSnooze:null, created:TODAY, dataSince:null, lastCat:'groc', welcomed:false, peek:false, demoDay:null },
+  };
+}
+
+/* Schema migrations: MIGRATIONS[n] turns version n into n+1. Never edit an old step, add a new one. */
+const MIGRATIONS = {
+  1: s => {   // v1 (sketch) -> v2: leftover carry-over, start date, goal creation date, first-data date
+    s.settings = s.settings || {};
+    if (s.settings.carry === undefined) s.settings.carry = true;
+    if (!s.settings.startedOn) s.settings.startedOn = TODAY;   // carry-over starts now: never look back into months the sketch didn't track
+    (s.goals || []).forEach(g => { if (!g.created) g.created = g.since || TODAY; });
+    s.meta = s.meta || {};
+    if (!s.meta.dataSince && ((s.spends || []).length || (s.bills || []).length)) s.meta.dataSince = s.meta.created || TODAY;
+    return s;
+  },
+};
+function migrate(raw) {
+  if (!raw || typeof raw !== 'object' || typeof raw.v !== 'number' || raw.v > SCHEMA) return null;
+  let s = JSON.parse(JSON.stringify(raw));
+  while (s.v < SCHEMA) { const step = MIGRATIONS[s.v]; if (!step) return null; s = step(s); s.v += 1; }
+  const base = blank();
+  const out = { ...base, ...s, settings:{ ...base.settings, ...(s.settings || {}) }, meta:{ ...base.meta, ...(s.meta || {}) } };
+  for (const k of ['bills','yearly','spends','goals','debts']) if (!Array.isArray(out[k])) out[k] = [];
+  for (const k of ['paid','checkins']) if (!out[k] || typeof out[k] !== 'object') out[k] = {};
+  if (!Array.isArray(out.cats) || !out.cats.length) out.cats = DEFAULT_CATS.map(c => ({ ...c }));
+  if (!Array.isArray(out.settings.semi) || out.settings.semi.length !== 2) out.settings.semi = [1, 15];
+  if (!isoDate(out.settings.anchor)) out.settings.anchor = TODAY;
+  out.v = SCHEMA;
+  return out;
+}
+
+/* ---------- Storage (every access wrapped: private mode / blocked storage must never crash) ---------- */
+let storageOk = true, newerData = false;
+function probeStorage() { try { const k = '__doable_probe'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true; } catch (e) { return false; } }
+function readKey(k) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function writeKey(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+function removeKey(k) { try { localStorage.removeItem(k); } catch (e) { /* nothing to do */ } }
+const peeking = () => S.demo && !IS_DEMO;
+const activeKey = () => (peeking() ? EX_KEY : KEY);
+function save() {
+  if (newerData) return;                       // never overwrite numbers saved by a newer version
+  const ok = writeKey(activeKey(), S);
+  if (!ok && storageOk) { storageOk = false; }
+  else if (ok) storageOk = true;
+}
+function boot() {
+  storageOk = probeStorage();
+  const raw = readKey(KEY);
+  if (raw && typeof raw.v === 'number' && raw.v > SCHEMA) { newerData = true; }
+  if (IS_DEMO) {
+    const d = migrate(raw);
+    if (d && d.meta.demoDay === TODAY) return d;
+    const fresh = demo(); if (d) fresh.theme = d.theme; return fresh;
+  }
+  const own = migrate(raw);
+  if (own && own.meta.peek) { const ex = migrate(readKey(EX_KEY)); if (ex) return ex; own.meta.peek = false; }
+  return own || blank();
+}
+
+/* ---------- Money model ---------- */
+const PPY = { weekly:52, biweekly:26, semimonthly:24, monthly:12 };
+
+function paydayOnOrBefore(date) {
+  const st = S.settings, f = st.freq;
+  if (f === 'weekly' || f === 'biweekly') {
+    const step = f === 'weekly' ? 7 : 14;
+    const k = Math.floor(diffDays(st.anchor, date) / step);
+    return addDays(st.anchor, k * step);
+  }
+  const d = parse(date), y = d.getFullYear(), m = d.getMonth();
+  if (f === 'monthly') {
+    const day = parse(st.anchor).getDate();
+    const c = dateIn(y, m, day);
+    return c <= date ? c : dateIn(y, m - 1, day);
+  }
+  const days = [...st.semi].map(Number).sort((a, b) => a - b);
+  const cands = [];
+  for (const mm of [m - 1, m]) for (const dd of days) cands.push(dateIn(y, mm, dd));
+  return cands.filter(c => c <= date).sort().pop();
+}
+function nextPayday(start) {
+  let n = addDays(start, 1), guard = 0;
+  while (paydayOnOrBefore(n) === start && guard++ < 40) n = addDays(n, 1);
+  return n;
+}
+function countPaydays(sinceExcl, toIncl) {
+  let n = 0, p = paydayOnOrBefore(toIncl), guard = 0;
+  while (p > sinceExcl && guard++ < 400) { n++; p = paydayOnOrBefore(addDays(p, -1)); }
+  return n;
+}
+function billDates(bill, from, toExcl) {
+  const out = []; const a = parse(from);
+  for (let i = -1; i < 3; i++) {
+    const dt = dateIn(a.getFullYear(), a.getMonth() + i, bill.day);
+    if (dt >= from && dt < toExcl) out.push(dt);
+  }
+  return out;
+}
+const isPaid = (bill, date) => !!S.paid[`${bill.id}|${ym(date)}`];
+const goalSavedAt = (g, date) => Math.min(num(g.target), num(g.saved) + num(g.per) * countPaydays(g.since, date));
+const goalSaved = g => goalSavedAt(g, TODAY);
+const carryBoundary = () => [S.settings.startedOn, S.settings.freshFrom].filter(isoDate).sort().pop() || null;
+
+/* Everything for the pay period that starts on `start`. Leftover carry-over looks back one period at a time. */
+function figures(start, depth) {
+  const st = S.settings;
+  const next = nextPayday(start), last = addDays(next, -1), end = last < TODAY ? last : TODAY;
+  const from = st.freshFrom && st.freshFrom > start && st.freshFrom <= end ? st.freshFrom : start;
+  const spends = S.spends.filter(x => x.date >= from && x.date <= end);
+  const extra = spends.filter(x => x.inflow).reduce((a, x) => a + num(x.amount), 0);
+  const spent = spends.filter(x => !x.inflow).reduce((a, x) => a + num(x.amount), 0);
+  const bills = S.bills.reduce((a, b) => a + billDates(b, start, next).length * num(b.amount), 0);
+  const yearly = S.yearly.reduce((a, y) => a + num(y.amount), 0) / PPY[st.freq];
+  const before = addDays(start, -1);
+  const goals = S.goals.filter(g => (g.created || g.since || '') < next)
+    .reduce((a, g) => a + Math.max(0, Math.min(num(g.per), num(g.target) - goalSavedAt(g, before))), 0);
+  let carry = 0, hasPrev = false, prevCount = 0;
+  const boundary = carryBoundary();
+  if (st.carry && depth < MAX_CARRY && boundary && boundary < start) {
+    const p = figures(paydayOnOrBefore(before), depth + 1);
+    carry = r2(p.safe); hasPrev = true; prevCount = p.count;
+  }
+  const pay = num(st.pay);
+  const safe = pay + extra + carry - bills - yearly - goals - spent;
+  return { start, next, from, pay, extra, spent, bills, yearly, goals, carry, hasPrev, prevCount, safe, count: spends.length, spends };
+}
+function compute() {
+  if (!S.settings.pay) return null;
+  const start = paydayOnOrBefore(TODAY);
+  const f = figures(start, 0);
+  const len = diffDays(start, f.next);
+  return { ...f, len, dayN: diffDays(start, TODAY) + 1, left: Math.max(1, diffDays(TODAY, f.next)), perDay: f.safe / Math.max(1, diffDays(TODAY, f.next)) };
+}
+
+/* The occurrence of each bill that matters right now, with a kind status */
+function billStatus(bill, upcoming) {
+  const t = parse(TODAY);
+  let dt = dateIn(t.getFullYear(), t.getMonth(), bill.day);
+  const fresh = S.settings.freshFrom;
+  if ((upcoming && isPaid(bill, dt)) || (fresh && dt < fresh && !isPaid(bill, dt))) dt = dateIn(t.getFullYear(), t.getMonth() + 1, bill.day);
+  const paid = isPaid(bill, dt), d = diffDays(TODAY, dt);
+  let key, text;
+  if (paid) { key = 'paid'; text = '✓ Paid'; }
+  else if (d < 0) { key = 'ask'; text = 'Paid?'; }
+  else if (d === 0) { key = 'today'; text = 'Today'; }
+  else if (d <= 7) { key = 'soon'; text = d === 1 ? 'Tomorrow' : `in ${d} days`; }
+  else { key = 'later'; text = 'Coming up'; }
+  return { date: dt, days: d, paid, key, text };
+}
+
+/* ---------- Example data ---------- */
+function demo() {
+  const s = blank();
+  const t = TODAY, d = parse(t);
+  s.demo = true; s.meta.welcomed = true; s.meta.demoDay = t;
+  s.settings.pay = 2100; s.settings.freq = 'biweekly';
+  s.settings.anchor = addDays(t, -5);            // day 6 of 14, like the listing image
+  s.settings.startedOn = addDays(t, -19);   // carry starts with the previous paycheck (keeps the example leftover small)
+  const due = off => parse(addDays(t, off)).getDate();
+  s.bills = [
+    { id:'b1', name:'Rent',          amount:850, day:1 },
+    { id:'b2', name:'Car insurance', amount:112, day:due(-5) },
+    { id:'b3', name:'Internet',      amount:55,  day:due(-1) },
+    { id:'b4', name:'Streaming',     amount:15,  day:due(3) },
+    { id:'b5', name:'Phone',         amount:45,  day:due(6) },
+    { id:'b6', name:'Card payment',  amount:60,  day:due(8) },
+    { id:'b7', name:'Electricity',   amount:85,  day:due(17) },
+  ];
+  const paidOn = (id, off) => { const dd = addDays(t, off); s.paid[`${id}|${ym(dd)}`] = dd; };
+  paidOn('b1', 1 - d.getDate());
+  paidOn('b2', -5);
+  s.yearly = [
+    { id:'y1', name:'Car registration', amount:240 },
+    { id:'y2', name:'Gifts',            amount:300 },
+    { id:'y3', name:'Yearly subscription', amount:139 },
+  ];
+  const sp = (off, amount, cat, note, inflow) => s.spends.push({ id:uid(), date:addDays(t, off), amount, cat, note, inflow:!!inflow });
+  sp(-5, 38, 'groc', 'Lidl'); sp(-4, 20, 'move', 'Bus pass'); sp(-3, 4.5, 'eat', 'Coffee');
+  sp(-3, 46.2, 'groc', 'Lidl'); sp(-2, 15.9, 'home', 'School supplies'); sp(-2, 22, 'fun', 'Cinema');
+  sp(-1, 24.3, 'groc', 'Groceries'); sp(-1, 12, 'eat', 'Lunch out'); sp(0, 3.8, 'eat', 'Coffee');
+  s.goals = [
+    { id:'g1', name:'Cushion',      target:1000, saved:340, per:150, since:addDays(t, -5), created:addDays(t, -60) },
+    { id:'g2', name:'Summer trip',  target:800,  saved:120, per:40,  since:addDays(t, -5), created:addDays(t, -60) },
+  ];
+  s.debts = [
+    { id:'d1', name:'Credit card', start:2400, balance:1840 },
+    { id:'d2', name:'Car loan',    start:6000, balance:4150 },
+  ];
+  // Previous paycheck: ordinary spending, then size the last shop so about $46 was left over
+  const prevStart = addDays(t, -19);
+  [[-19, 72.4, 'groc', 'Big shop'], [-17, 20, 'move', 'Bus pass'], [-15, 31, 'eat', 'Pizza night'], [-13, 54.1, 'groc', 'Lidl'],
+   [-11, 30, 'fun', 'Books'], [-10, 18.5, 'home', 'Pharmacy'], [-8, 61, 'groc', 'Big shop'], [-7, 9.8, 'eat', 'Coffee']].forEach(a => sp(...a));
+  s.goals.forEach(g => { g.saved -= g.per; g.since = addDays(prevStart, -1); });   // they grew on the last payday
+  const keep = S; S = s;
+  try {
+    S.settings.carry = false;
+    const p = figures(prevStart, 0);
+    S.settings.carry = true;
+    const gap = r2(p.safe - 46);
+    if (gap > 0) sp(-6, gap, 'groc', 'Groceries');
+  } finally { S = keep; }
+  s.goals.forEach(g => { g.saved += g.per; g.since = addDays(t, -5); });
+  s.meta.lastBackup = addDays(t, -9);
+  s.meta.dataSince = addDays(t, -40);
+  s.meta.lastCat = 'groc';
+  return s;
+}
+
+/* ---------- Rendering ---------- */
+function focusKey(el) {
+  if (!el || el === document.body) return null;
+  if (el.dataset && el.dataset.act) return `[data-act="${el.dataset.act}"]${el.dataset.id ? `[data-id="${el.dataset.id}"]` : ''}${el.dataset.v ? `[data-v="${el.dataset.v}"]` : ''}`;
+  if (el.dataset && el.dataset.set) return `[data-set="${el.dataset.set}"]`;
+  if (el.dataset && el.dataset.cat !== undefined) return `[data-cat="${el.dataset.cat}"]`;
+  if (el.getAttribute && el.getAttribute('href')) return `${el.closest('.side') ? '.side ' : el.closest('.tabs') ? '.tabs ' : ''}a[href="${el.getAttribute('href')}"]`;
+  return null;
+}
+function render() {
+  document.documentElement.dataset.theme = S.theme;
+  const tc = document.querySelector('meta[name=theme-color]'); if (tc) tc.content = S.theme === 'light' ? '#F3ECE4' : '#24170F';
+  const root = $('#root');
+  const fk = root.contains(document.activeElement) ? focusKey(document.activeElement) : null;
+  if (!S.meta.welcomed) { root.innerHTML = notices() + viewWelcome(); }
+  else {
+    if (!TABS.some(t => t[0] === UI.tab)) UI.tab = 'today';
+    const views = { today:viewToday, bills:viewBills, spending:viewSpending, goals:viewGoals, setup:viewSetup };
+    root.innerHTML = `
+      ${sideNav()}
+      <main class="app" id="main">
+        <header class="top">
+          <div><div class="brand">DOABLE BUDGET</div><div class="date">${niceLong(TODAY)}</div></div>
+          <button class="iconbtn" data-act="theme" aria-label="${S.theme === 'light' ? 'Switch to Chocolate (dark)' : 'Switch to Cream (light)'}">${S.theme === 'light' ? I.moon : I.sun}</button>
+        </header>
+        ${notices()}
+        ${views[UI.tab]()}
+      </main>
+      <div class="tabs"><nav aria-label="Main">${TABS.map(([k, l]) => `<a href="#${k}" ${UI.tab === k ? 'aria-current="page"' : ''}>${I[k === 'spending' ? 'spend' : k]}<span>${l}</span></a>`).join('')}</nav></div>
+      ${UI.tab !== 'setup' && UI.tab !== 'today' ? `<button class="fab" data-act="log" aria-label="Log a spend">${I.plus}</button>` : ''}
+    `;
+  }
+  if (fk) { const el = visible('#root ' + fk); if (el) el.focus({ preventScroll: true }); }
+}
+/* first matching element that is actually on screen (the desktop sidebar is hidden on phones) */
+function visible(sel) { return [...document.querySelectorAll(sel)].find(x => x.getClientRects().length > 0) || null; }
+function notices() {
+  let out = '';
+  if (!storageOk) out += `<div class="banner" role="alert"><b>This browser isn’t letting the app save right now.</b>
+    Private browsing, or blocked site data, can do this. You can look around, but numbers you type will be gone when you close this window.
+    Open it in a normal window to keep them, or save a backup file before you leave.</div>`;
+  if (newerData) out += `<div class="banner" role="alert"><b>Your numbers were saved by a newer version of the app.</b>
+    Close it and open it again to get the update. Nothing was changed.</div>`;
+  if (IS_DEMO) out += `<div class="strip demo"><span><b>This is a demo — your real copy keeps your own numbers.</b></span>
+    <span class="acts"><button class="btn sm" data-act="demo-reset">Reset examples</button>${BUILD.shopUrl ? `<a class="btn sm primary" href="${esc(BUILD.shopUrl)}" target="_blank" rel="noopener">Get your own copy</a>` : ''}</span></div>`;
+  else if (S.demo && S.meta.welcomed) out += `<div class="strip"><span><b>Example numbers.</b> Tap around, nothing is real.</span><button class="btn sm" data-act="start-mine">${mineIsEmpty() ? 'Start mine' : 'Back to mine'}</button></div>`;
+  return out;
+}
+function mineIsEmpty() { const own = migrate(readKey(KEY)); return !own || (!own.settings.pay && !own.spends.length && !own.bills.length); }
+function sideNav() {
+  return `<aside class="side" aria-label="Sections">
+    <div class="brand">DOABLE</div><div class="tag">Budget</div>
+    <nav aria-label="Main (desktop)">${TABS.map(([k, l]) => `<a href="#${k}" ${UI.tab === k ? 'aria-current="page"' : ''}>${I[k === 'spending' ? 'spend' : k]}${l}</a>`).join('')}</nav>
+    <button class="btn primary block" data-act="log">${I.plus} Log a spend</button>
+    <div class="foot">Your numbers stay on your device.<br>Doable, not perfect.</div>
+  </aside>`;
+}
+
+function offlineChip() {
+  if (IS_FILE) return '<span>Works offline</span>';
+  if (BUILD.sw) return '<span>Works offline after first open</span>';
+  return '';
+}
+function viewWelcome() {
+  return `<main class="welcome" id="main">
+    <div class="brand">DOABLE BUDGET</div>
+    <h1>See what’s safe to spend <em>until payday.</em></h1>
+    <p>One number, bills that remind you, and a fresh start whenever you need one. Calm, no lectures.</p>
+    <div class="trust"><span>ADHD-friendly</span>${offlineChip()}<span>Light &amp; dark</span></div>
+    <div class="stack">
+      <button class="btn primary block" data-act="welcome-mine" style="min-height:54px">Set up mine · about 2 minutes</button>
+      <button class="btn block" data-act="welcome-demo" style="min-height:54px">Look around with example numbers</button>
+    </div>
+    <button class="btn quiet sm restore" data-act="restore">Moving from another phone or computer? Restore a backup file</button>
+    <p class="mu privacy">${PRIVACY}</p>
+  </main>`;
+}
+
+function heroCard(c) {
+  if (!c) return `<section class="card hero o1"><div class="lab">Safe to spend until payday</div>
+    <div class="empty"><div class="serif">Tell me about your paycheck</div><p class="mu">and your number shows up here.</p>
+    <a class="btn primary" style="margin-top:14px" href="#setup">Set up my paycheck</a></div></section>`;
+  const over = c.safe < 0;
+  const carryNote = c.carry > 0 ? `Includes ${money(c.carry)} left over from last paycheck.`
+                  : c.carry < 0 ? `Ran a bit over last time: ${money(c.carry)}, already included.` : '';
+  return `<section class="card hero o1" aria-labelledby="hero-lab">
+    <div class="lab" id="hero-lab">${over ? 'Over plan this paycheck' : 'Safe to spend until payday'}</div>
+    <div class="big ${over ? 'over' : ''}" data-safe="${r2(c.safe)}">${money(Math.abs(c.safe), true)}</div>
+    ${over ? `<div class="perday">It resets on payday, ${nice(c.next)}.</div><div class="note">That’s information, not failure.</div>`
+           : `<div class="perday">about ${money(Math.floor(c.perDay), true)} <span>a day</span></div>`}
+    ${carryNote ? `<div class="note carry-note">${carryNote}</div>` : ''}
+    <div class="prog"><div class="row"><b>Day ${c.dayN} of ${c.len}</b><span class="mu">${c.left} ${c.left === 1 ? 'day' : 'days'} left · payday ${nice(c.next)}</span></div>
+      <div class="bar" role="img" aria-label="Day ${c.dayN} of ${c.len}"><i style="width:${Math.min(100, (c.dayN / c.len) * 100)}%"></i></div></div>
+    <button class="mathbtn phone-math" data-act="math" aria-expanded="${UI.math}" aria-controls="math">How this number is made ${I.chev}</button>
+    <div class="lab mathtitle">How this number is made</div>
+    <div class="math ${UI.math ? '' : 'closed'}" id="math">${mathRows(c)}</div>
+  </section>`;
+}
+function mathRows(c) {
+  const r = (s, l, v, cls = '') => `<div class="item ${cls}"><span class="sign" aria-hidden="true">${s}</span><span class="name">${l}</span><span class="amt">${s === '−' ? '<span class="sr">minus </span>' : ''}${money(r2(v))}</span></div>`;
+  let carryRow = '', carryHint = '';
+  if (c.hasPrev) {
+    carryRow = c.carry < 0 ? r('−', 'Ran a bit over last time', -c.carry, 'carry neg') : r('+', 'Left over from last paycheck', c.carry, 'carry');
+    if (c.carry < 0) carryHint = `<p class="small">Ran a bit over last time: ${money(c.carry)}, already included. That’s information, not failure.</p>`;
+    else if (c.carry > 0 && c.prevCount === 0) carryHint = `<p class="small">Nothing was logged last paycheck, so this leftover may be too high. You can turn carry-over off in Setup, or use Fresh start.</p>`;
+  }
+  return `<div class="list" style="margin-top:6px">
+    ${r('+', 'Paycheck', c.pay)}
+    ${carryRow}
+    ${c.extra ? r('+', 'Extra money in', c.extra) : ''}
+    ${r('−', 'Bills this paycheck', c.bills)}
+    ${r('−', 'Tucked away for yearly costs', c.yearly)}
+    ${r('−', 'Going to your goals', c.goals)}
+    ${r('−', 'Spent so far', c.spent)}
+    ${r('=', 'Safe to spend', c.safe, 'total')}
+  </div>${carryHint}${c.from !== c.start ? `<p class="small">Fresh start from ${nice(c.from)}: spending before then doesn’t count.</p>` : ''}`;
+}
+
+const ordinal = n => n + (['th','st','nd','rd'][((n % 100) - 20) % 10] || ['th','st','nd','rd'][n % 100] || 'th');
+function billRow(b, st, compact) {
+  return `<button class="item tap" data-act="bill-tap" data-id="${b.id}" aria-label="${esc(b.name)}, ${money(num(b.amount))}, ${nice(st.date)}, ${st.text.replace('✓ ', '')}">
+    <span class="dday" aria-hidden="true"><b>${parse(st.date).getDate()}</b><small>${MON[parse(st.date).getMonth()]}</small></span>
+    <span class="name">${esc(b.name)}${compact ? '' : `<span class="meta">monthly · the ${ordinal(b.day)}</span>`}</span>
+    <span class="amt">${money(num(b.amount))}</span>
+    <span class="pill ${st.key}">${st.text}</span>
+  </button>`;
+}
+function nextBillsCard() {
+  const rows = S.bills.map(b => ({ b, st: billStatus(b, true) })).filter(x => !x.st.paid).sort((a, b) => a.st.date.localeCompare(b.st.date)).slice(0, 3);
+  return `<section class="card o3">
+    <div class="row"><div class="lab"><span class="dot" style="background:var(--honey)"></span>Next bills</div><a class="link" href="#bills">All bills</a></div>
+    ${rows.length ? `<div class="list" style="margin-top:6px">${rows.map(x => billRow(x.b, x.st, true)).join('')}</div>`
+      : `<p class="mu" style="margin-top:10px">${S.bills.length ? 'Everything’s paid for now. Nice.' : 'No bills yet. Add them once on the Bills tab.'}</p>`}
+  </section>`;
+}
+const hasData = () => S.spends.length + S.bills.length > 0;
+function backupDue() {
+  if (peeking() || !hasData()) return false;
+  const ref = S.meta.lastBackup || S.meta.dataSince || S.meta.created;
+  if (!ref || diffDays(ref, TODAY) < 7) return false;
+  return !(S.meta.backupSnooze && S.meta.backupSnooze > TODAY);
+}
+function backupNudge() {
+  if (!backupDue()) return '';
+  const last = S.meta.lastBackup, days = last ? diffDays(last, TODAY) : null;
+  return `<section class="card nudge o4" id="backup-nudge">
+    <div class="lab"><span class="dot" style="background:var(--honey)"></span>A small safety step</div>
+    <div class="ttl">${days === null ? 'You haven’t saved a copy yet' : `Last saved copy: ${days} days ago`}</div>
+    <div class="mu" style="font-size:14px">Your budget lives only on this device. A copy keeps it safe if the browser gets cleared or you change phones.</div>
+    <div class="acts"><button class="btn sm primary" data-act="backup">Save a copy</button><button class="btn sm ghost" data-act="snooze-backup">Later</button></div>
+  </section>`;
+}
+function kindCard() {
+  const on = !!S.checkins[TODAY];
+  return `<section class="card soft o5">
+    <button class="check ${on ? 'on' : ''}" data-act="checkin" aria-pressed="${on}">
+      <span class="box" aria-hidden="true">${on ? I.check : ''}</span>
+      <span><b style="font-weight:600">${on ? 'You looked today' : 'I looked today'}</b><span class="meta mu blk" style="font-size:13px">${on ? 'That’s the hard part. Done.' : 'One tap. No streaks, nothing to lose.'}</span></span>
+    </button>
+    <div class="kind">${KIND[(parse(TODAY).getDate()) % KIND.length]}</div>
+  </section>`;
+}
+function recentCard() {
+  const list = [...S.spends].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
+  return `<section class="card desk-only o6">
+    <div class="row"><div class="lab"><span class="dot" style="background:var(--sage)"></span>Latest spending</div><a class="link" href="#spending">See all</a></div>
+    ${list.length ? `<div class="list" style="margin-top:6px">${list.map(x => spendRow(x)).join('')}</div>` : `<p class="mu" style="margin-top:10px">Nothing logged yet. Logging takes three seconds.</p>`}
+  </section>`;
+}
+function goalsMini() {
+  if (!S.goals.length) return '';
+  return `<section class="card desk-only o7"><div class="row"><div class="lab"><span class="dot" style="background:var(--forest)"></span>Goals</div><a class="link" href="#goals">Open</a></div>
+    ${S.goals.slice(0, 2).map(g => { const s = goalSaved(g); return `<div class="goal"><div class="row"><b style="font-weight:600">${esc(g.name)}</b><span class="mu" style="font-size:13px">${money(s)} of ${money(num(g.target))}</span></div><div class="bar"><i style="width:${(s / num(g.target)) * 100}%"></i></div></div>`; }).join('')}
+  </section>`;
+}
+function viewToday() {
+  const c = compute();
+  return `<h1 class="title" tabindex="-1">Today</h1>
+  <div class="grid2">
+    <div class="col">
+      ${heroCard(c)}
+      <button class="btn primary logbtn phone-only o2" data-act="log">${I.plus} Log a spend</button>
+      ${kindCard()}
+    </div>
+    <div class="col">
+      ${backupNudge()}
+      ${nextBillsCard()}
+      ${recentCard()}
+      ${goalsMini()}
+    </div>
+  </div>`;
+}
+
+/* Bills */
+function calendarCard() {
+  const t = parse(TODAY), y = t.getFullYear(), m = t.getMonth();
+  const first = new Date(y, m, 1).getDay(), n = dim(y, m);
+  const pays = new Set(); let p = paydayOnOrBefore(dateIn(y, m, n)), g = 0;
+  if (S.settings.pay) while (p >= dateIn(y, m, 1) && g++ < 40) { pays.add(p); p = paydayOnOrBefore(addDays(p, -1)); }
+  const cells = [];
+  for (let i = 0; i < first; i++) cells.push('<div class="d out" aria-hidden="true"></div>');
+  for (let d = 1; d <= n; d++) {
+    const dt = dateIn(y, m, d);
+    const due = S.bills.filter(b => dateIn(y, m, b.day) === dt);
+    const dots = due.map(b => {
+      const col = isPaid(b, dt) ? 'var(--sage)' : dt < TODAY ? 'var(--rose)' : diffDays(TODAY, dt) <= 7 ? 'var(--honey)' : 'var(--mu)';
+      return `<i style="background:${col}"></i>`;
+    }).slice(0, 3).join('');
+    const label = `${MON[m]} ${d}${pays.has(dt) ? ', payday' : ''}${due.length ? `, ${due.map(b => esc(b.name)).join(', ')}` : ''}`;
+    cells.push(`<div class="d ${dt < TODAY ? 'past' : ''} ${dt === TODAY ? 'now' : ''} ${pays.has(dt) ? 'pay' : ''}" role="gridcell" aria-label="${label}">${d}<span class="dots" aria-hidden="true">${dots}</span></div>`);
+  }
+  return `<section class="card">
+    <div class="row"><div class="lab">${MON[m]} ${y}</div><span class="small" style="margin:0">${plural(S.bills.length, 'bill', 'bills')} · ${plural(pays.size, 'payday', 'paydays')}</span></div>
+    <div class="cal" role="grid" aria-label="Bills and paydays this month">${DOW.map(d => `<div class="h" aria-hidden="true">${d[0]}</div>`).join('')}${cells.join('')}</div>
+    <div class="legend"><span><i class="ring"></i>Payday</span><span><i style="background:var(--honey)"></i>Soon</span><span><i style="background:var(--sage)"></i>Paid</span><span><i style="background:var(--rose)"></i>Paid?</span></div>
+  </section>`;
+}
+function viewBills() {
+  const rows = S.bills.map(b => ({ b, st: billStatus(b) })).sort((a, b) => a.st.date.localeCompare(b.st.date));
+  const total = S.bills.reduce((a, b) => a + num(b.amount), 0);
+  const yearTotal = S.yearly.reduce((a, y) => a + num(y.amount), 0);
+  const per = PPY[S.settings.freq];
+  return `<h1 class="title" tabindex="-1">Bills</h1><p class="sub">Add each bill once. When it’s paid, tap it.</p>
+  <div class="grid2">
+    <div class="col">
+      <section class="card o1">
+        <div class="row"><div class="lab">Every month · ${money(r2(total))}</div><button class="btn sm" data-act="bill-new">${I.plus} Add</button></div>
+        ${rows.length ? `<div class="list" style="margin-top:6px">${rows.map(x => billRow(x.b, x.st)).join('')}</div>`
+          : `<div class="empty"><div class="serif">No bills yet</div><p class="mu">Rent, phone, streaming… add each one once and it repeats every month.</p></div>`}
+      </section>
+    </div>
+    <div class="col">
+      <div class="o2">${calendarCard()}</div>
+      <section class="card o3">
+        <div class="row"><div class="lab">Once or twice a year</div><button class="btn sm" data-act="yearly-new">${I.plus} Add</button></div>
+        <p class="small" style="margin-top:6px">A little gets tucked away every payday, so it never surprises you.</p>
+        ${S.yearly.length ? `<div class="list" style="margin-top:4px">${S.yearly.map(y => `<button class="item tap" data-act="yearly-tap" data-id="${y.id}"><span class="name">${esc(y.name)}<span class="meta">${money(r2(num(y.amount) / per))} each payday</span></span><span class="amt">${money(num(y.amount))}<span class="mu" style="font-weight:400">/yr</span></span></button>`).join('')}</div>
+          <p class="small">${money(r2(yearTotal / per))} tucked away every payday in total.</p>`
+          : `<p class="mu" style="margin-top:10px">Car registration, gifts, a yearly subscription… add them here.</p>`}
+      </section>
+    </div>
+  </div>`;
+}
+
+/* Spending */
+function spendRow(x, grouped) {
+  const cat = S.cats.find(c => c.id === x.cat) || S.cats[0];
+  return `<button class="item tap" data-act="spend-tap" data-id="${x.id}">
+    <span class="cdot" aria-hidden="true" style="background:${x.inflow ? 'var(--sage)' : `var(--${cat.color})`}"></span>
+    <span class="name">${esc(x.note || (x.inflow ? 'Money in' : cat.name))}<span class="meta">${x.inflow ? 'Money in' : esc(cat.name)}${grouped ? '' : ` · ${nice(x.date)}`}</span></span>
+    <span class="amt ${x.inflow ? 'inflow' : ''}">${x.inflow ? '+' : ''}${money(num(x.amount))}</span>
+  </button>`;
+}
+function viewSpending() {
+  const c = compute();
+  const out = (c ? c.spends : []).filter(x => !x.inflow);
+  const tot = out.reduce((a, x) => a + num(x.amount), 0);
+  const byCat = S.cats.map(cat => ({ cat, v: out.filter(x => x.cat === cat.id).reduce((a, x) => a + num(x.amount), 0) }));
+  const max = Math.max(1, ...byCat.map(b => b.v));
+  const list = [...S.spends].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 60);
+  const groups = {}; list.forEach(x => (groups[x.date] = groups[x.date] || []).push(x));
+  return `<h1 class="title" tabindex="-1">Spending</h1><p class="sub">One line per purchase. Rough is fine.</p>
+  <div class="grid2">
+    <div class="col">
+      <section class="card catbars o1">
+        <div class="lab">This paycheck${c ? ` · since ${nice(c.from)}` : ''}</div>
+        <div class="serif" style="font-size:44px;line-height:1.1;margin-top:6px">${money(r2(tot))}</div>
+        ${byCat.map(b => `<div class="cb"><div class="row"><span style="display:flex;align-items:center;gap:8px"><span class="cdot" style="background:var(--${b.cat.color})"></span>${esc(b.cat.name)}</span><span class="amt">${money(r2(b.v))}</span></div><div class="bar" aria-hidden="true"><i style="width:${(b.v / max) * 100}%;background:var(--${b.cat.color})"></i></div></div>`).join('')}
+      </section>
+    </div>
+    <div class="col">
+      <section class="card o2">
+        <div class="row"><div class="lab">Latest</div><button class="btn sm" data-act="log">${I.plus} Log</button></div>
+        ${list.length ? Object.keys(groups).map(d => `<div class="day-h">${d === TODAY ? 'Today' : d === addDays(TODAY, -1) ? 'Yesterday' : niceLong(d)}</div><div class="list">${groups[d].map(x => spendRow(x, true)).join('')}</div>`).join('')
+          : `<div class="empty"><div class="serif">Nothing logged yet</div><p class="mu">Tap + after you buy something: amount, group, done.</p></div>`}
+        <p class="small">Missed a few days? Add them whenever, or use Fresh start in Setup.</p>
+      </section>
+    </div>
+  </div>`;
+}
+
+/* Goals & debts */
+function viewGoals() {
+  return `<h1 class="title" tabindex="-1">Goals</h1><p class="sub">Savings that grow by themselves each payday, and debts going down.</p>
+  <div class="grid2">
+    <div class="col">
+      <section class="card o1">
+        <div class="row"><div class="lab"><span class="dot" style="background:var(--forest)"></span>Saving for</div><button class="btn sm" data-act="goal-new">${I.plus} Add</button></div>
+        ${S.goals.length ? S.goals.map(g => { const s = goalSaved(g), pc = Math.round((s / num(g.target)) * 100); return `
+          <button class="goal tap blk" data-act="goal-tap" data-id="${g.id}">
+            <span class="row"><b style="font-weight:600">${esc(g.name)}</b><span class="pill ${pc >= 100 ? 'paid' : 'later'}">${pc >= 100 ? 'Reached' : pc + '% there'}</span></span>
+            <span class="nums blk">${money(r2(s))} <span>of ${money(num(g.target))}</span></span>
+            <span class="bar blk"><i style="width:${pc}%"></i></span>
+            <span class="small blk">${pc >= 100 ? 'Done. It no longer comes out of your number.' : `grows by ${money(num(g.per))} every payday`}</span>
+          </button>`; }).join('')
+          : `<div class="empty"><div class="serif">No goals yet</div><p class="mu">A cushion, a trip, a new laptop. Pick an amount per payday and it grows by itself.</p></div>`}
+      </section>
+    </div>
+    <div class="col">
+      <section class="card o2">
+        <div class="row"><div class="lab"><span class="dot" style="background:var(--mauve)"></span>Paying off</div><button class="btn sm" data-act="debt-new">${I.plus} Add</button></div>
+        ${S.debts.length ? S.debts.map(d => { const paid = Math.max(0, num(d.start) - num(d.balance)), pc = num(d.start) ? Math.round((paid / num(d.start)) * 100) : 0; return `
+          <div class="goal debt">
+            <div class="row"><b style="font-weight:600">${esc(d.name)}</b><button class="btn sm" data-act="debt-pay" data-id="${d.id}" aria-label="I paid on ${esc(d.name)}">I paid</button></div>
+            <button class="tap blk" data-act="debt-tap" data-id="${d.id}" aria-label="Edit ${esc(d.name)}">
+              <span class="nums blk">${money(num(d.balance))} <span>left</span></span>
+              <span class="bar blk"><i style="width:${pc}%"></i></span>
+              <span class="small blk">${money(r2(paid))} paid off so far · ${pc}%</span>
+            </button>
+          </div>`; }).join('')
+          : `<div class="empty"><div class="serif">No debts here</div><p class="mu">Add a card or loan to watch the balance go down.</p></div>`}
+        <p class="small">Monthly payments live in Bills, so they’re already in your number.</p>
+      </section>
+    </div>
+  </div>`;
+}
+
+/* Setup */
+function phoneCard() {
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  let body, btn;
+  if (IS_FILE) {
+    body = BUILD.appUrl ? `For your phone, open your phone link in Safari (iPhone) or Chrome (Android) and add it to your home screen:<a class="urlbox" href="${esc(BUILD.appUrl)}" target="_blank" rel="noopener">${esc(BUILD.appUrl.replace(/^https?:\/\//, ''))}</a><span class="small blk">To bring these numbers along, save a backup file here and restore it there.</span>`
+                        : 'For your phone, use the phone link from your START HERE guide and add it to your home screen.';
+    btn = '';
+  } else if (IS_DEMO) {
+    body = 'Your own copy goes on your home screen like an app and works offline after the first open. This demo is just for looking around.';
+    btn = '';
+  } else {
+    body = standalone ? 'You’re using the home-screen app. It works offline.' : 'Add it to your home screen: it opens like an app, works offline after the first open, and on iPhone it keeps your numbers safer.';
+    btn = `<div class="stack"><button class="btn" data-act="install">${standalone ? 'How it works offline' : 'Show me how'}</button></div>`;
+  }
+  return `<section class="card o4">
+    <div class="lab"><span class="dot" style="background:var(--sage)"></span>On your phone</div>
+    <p style="margin-top:8px">${body}</p>${btn}
+  </section>`;
+}
+function viewSetup() {
+  const st = S.settings, last = S.meta.lastBackup;
+  const freqs = [['weekly','Weekly'],['biweekly','Every 2 weeks'],['semimonthly','Twice a month'],['monthly','Monthly']];
+  const lastTxt = last ? (diffDays(last, TODAY) === 0 ? 'today' : plural(diffDays(last, TODAY), 'day', 'days') + ' ago') : 'never';
+  return `<h1 class="title" tabindex="-1">Setup</h1><p class="sub">Fill in once, change anytime.</p>
+  <div class="grid2">
+    <div class="col">
+      <section class="card o1">
+        <div class="lab"><span class="dot" style="background:var(--sunrise)"></span>Your paycheck</div>
+        <div class="seg" role="group" aria-label="How often you get paid">${freqs.map(([k, l]) => `<button data-act="freq" data-v="${k}" aria-pressed="${st.freq === k}">${l}</button>`).join('')}</div>
+        <div class="two">
+          <label class="field"><span>Amount after tax</span><input data-set="pay" inputmode="decimal" value="${st.pay || ''}" placeholder="2100" autocomplete="off"></label>
+          <label class="field"><span>Currency sign</span><input data-set="currency" value="${esc(st.currency)}" maxlength="4" list="curlist" autocomplete="off"></label>
+        </div>
+        <datalist id="curlist"><option value="$"><option value="€"><option value="£"><option value="C$"><option value="A$"><option value="kr"><option value="zł"><option value="₹"></datalist>
+        ${st.freq === 'semimonthly'
+          ? `<div class="two"><label class="field"><span>First payday (day of month)</span><input data-set="semi0" type="number" inputmode="numeric" min="1" max="31" value="${st.semi[0]}"></label><label class="field"><span>Second payday (day of month)</span><input data-set="semi1" type="number" inputmode="numeric" min="1" max="31" value="${st.semi[1]}"></label></div>`
+          : `<label class="field"><span>A recent payday</span><input data-set="anchor" type="date" value="${st.anchor}"></label>`}
+        ${st.pay ? `<p class="small" id="next-payday">Next payday: <b style="color:var(--tx)">${niceLong(compute().next)}</b></p>` : ''}
+        <button class="switchrow" role="switch" aria-checked="${!!st.carry}" data-act="carry">
+          <span><b>Carry leftovers to the next paycheck</b><span class="small blk">Money you didn’t spend moves into your next number. Ran a bit over? That comes along too, gently.</span></span>
+          <span class="sw" aria-hidden="true"></span>
+        </button>
+        ${st.pay && !S.demo && UI.firstSetup ? `<div class="stack"><a class="btn primary" href="#today" data-act="see-number">Show my number</a></div>` : ''}
+      </section>
+      <section class="card o2">
+        <div class="lab"><span class="dot" style="background:var(--rose)"></span>Fresh start</div>
+        <p style="margin-top:8px">Fell behind? Start from today. Old gaps stop counting, leftovers too. No catch-up, no guilt.</p>
+        ${st.freshFrom ? `<p class="small">Fresh start from <b style="color:var(--tx)">${nice(st.freshFrom)}</b>. Your bills and settings stayed.</p>
+          <div class="stack"><button class="btn" data-act="fresh-undo">Undo fresh start</button></div>`
+          : `<div class="stack"><button class="btn primary" data-act="fresh">Pick up from today</button></div>`}
+      </section>
+      <section class="card o5">
+        <div class="lab">Spending groups</div>
+        <p class="small" style="margin-top:6px">Name them your way.</p>
+        ${S.cats.map((c, i) => `<label class="field" style="display:flex;align-items:center;gap:10px"><span class="cdot" style="background:var(--${c.color});margin:0"></span><span class="sr">Group ${i + 1}</span><input data-cat="${i}" value="${esc(c.name)}" maxlength="18"></label>`).join('')}
+      </section>
+    </div>
+    <div class="col">
+      <section class="card o3">
+        <div class="lab"><span class="dot" style="background:var(--honey)"></span>Your data</div>
+        <p style="margin-top:8px">${PRIVACY}</p>
+        <p class="small">Clearing this browser’s data erases it, so keep a backup file somewhere safe.</p>
+        ${peeking() ? `<p class="small"><b style="color:var(--tx)">You’re looking at examples.</b> Your own numbers are kept aside, untouched.</p>` : `
+        <p class="small">Last saved copy: <b style="color:var(--tx)" id="last-backup">${lastTxt}</b>${storageOk ? '' : ' · this browser is blocking storage, so save a backup'}</p>
+        <div class="stack">
+          <button class="btn primary" data-act="backup">Save a backup file</button>
+          <button class="btn" data-act="restore">Restore from a backup file</button>
+          <button class="btn" data-act="csv">Export spending (CSV)</button>
+          <button class="btn quiet" data-act="erase">${IS_DEMO ? 'Erase and reset the demo' : 'Erase everything on this device'}</button>
+        </div>`}
+      </section>
+      ${phoneCard()}
+      <section class="card o6">
+        <div class="lab">Look</div>
+        <div class="seg" role="group" aria-label="Colour theme" style="grid-template-columns:1fr 1fr">
+          <button data-act="set-theme" data-v="dark" aria-pressed="${S.theme === 'dark'}">Chocolate</button>
+          <button data-act="set-theme" data-v="light" aria-pressed="${S.theme === 'light'}">Cream</button>
+        </div>
+      </section>
+      <section class="card o7">
+        <div class="lab">Example numbers</div>
+        ${IS_DEMO ? `<p class="small" style="margin-top:6px">Change anything you like. Reset brings the examples back.</p><div class="stack"><button class="btn" data-act="demo-reset">Reset examples</button></div>`
+          : `<p class="small" style="margin-top:6px">${S.demo ? 'You’re looking at examples. Leave them when you’re ready.' : 'Want to see a filled-in budget? Your own numbers are kept aside and come back when you leave the examples.'}</p>
+        <div class="stack">${S.demo ? `<button class="btn primary" data-act="start-mine">${mineIsEmpty() ? 'Clear examples and start mine' : 'Back to my numbers'}</button>` : `<button class="btn" data-act="show-demo">Look at examples</button>`}</div>`}
+      </section>
+      <p class="small o8" style="padding:0 4px 8px">A budgeting tool, not financial advice. ADHD-friendly by design. Version ${esc(BUILD.version)} · data v${SCHEMA}.</p>
+    </div>
+  </div>`;
+}
+
+/* ---------- Sheets (modals) ---------- */
+let sheetSubmit = null, sheetOpener = null;
+function openSheet(html, onSubmit) {
+  const sh = $('#sheet');
+  if (!sh.classList.contains('on')) sheetOpener = focusKey(document.activeElement);
+  sh.innerHTML = `<div class="grab" aria-hidden="true"></div>${html}`;
+  const h = sh.querySelector('h2'); if (h) h.id = 'sheet-title';
+  sheetSubmit = onSubmit || null;
+  $('#scrim').classList.add('on'); sh.classList.add('on');
+  $('#root').setAttribute('aria-hidden', 'true');
+  const f = sh.querySelector('[autofocus]') || sh.querySelector('button, [href], input');
+  if (f) { f.focus({ preventScroll: true }); setTimeout(() => { if (sh.classList.contains('on') && !sh.contains(document.activeElement)) f.focus({ preventScroll: true }); }, 60); }
+}
+function closeSheet() {
+  const sh = $('#sheet');
+  if (!sh.classList.contains('on')) return;
+  $('#scrim').classList.remove('on'); sh.classList.remove('on'); sheetSubmit = null;
+  $('#root').removeAttribute('aria-hidden');
+  setTimeout(() => { if (!sh.classList.contains('on')) sh.innerHTML = ''; }, 300);
+  const back = sheetOpener && visible('#root ' + sheetOpener);
+  if (back) back.focus({ preventScroll: true });
+  else { const h = document.querySelector('#root h1'); if (h) h.focus({ preventScroll: true }); }
+  sheetOpener = null;
+}
+
+function openLog(existing) {
+  const x = existing || { amount:'', cat:S.meta.lastCat || S.cats[0].id, note:'', date:TODAY, inflow:false };
+  openSheet(`<form id="logf" autocomplete="off">
+    <div class="row"><h2>${existing ? 'Edit' : 'Log a spend'}</h2><label class="toggle"><input type="checkbox" name="inflow" ${x.inflow ? 'checked' : ''}> Money in</label></div>
+    <div class="amount"><span class="cur" aria-hidden="true">${esc(S.settings.currency)}</span><input name="amount" inputmode="decimal" placeholder="0" value="${x.amount}" autofocus aria-label="Amount" enterkeyhint="done"></div>
+    <div class="chips" role="group" aria-label="Spending group">${S.cats.map(c => `<button type="button" class="chip" data-cat-pick="${c.id}" aria-pressed="${x.cat === c.id}"><span class="cdot" style="background:var(--${c.color})"></span>${esc(c.name)}</button>`).join('')}</div>
+    <div class="minirow"><input type="text" name="note" placeholder="What was it?" value="${esc(x.note)}" aria-label="What was it? (optional)"><input type="date" name="date" value="${x.date}" max="${TODAY}" aria-label="Date"></div>
+    <div class="stack" style="margin-top:16px">
+      <button class="btn primary block" style="min-height:54px;font-size:17px" type="submit">Done</button>
+      ${existing ? `<button class="btn ghost block" type="button" data-act="spend-del" data-id="${existing.id}">Delete this line</button>` : `<button class="btn quiet block" type="button" data-act="close">Cancel</button>`}
+    </div>
+    <input type="hidden" name="cat" value="${x.cat}">
+  </form>`, fd => {
+    const amount = Math.abs(num(fd.get('amount')));
+    if (!amount) { $('#logf [name=amount]').focus(); return false; }
+    const date = isoDate(fd.get('date')) ? fd.get('date') : TODAY;
+    const rec = { id: existing ? existing.id : uid(), amount: r2(amount), cat: fd.get('cat'), note: (fd.get('note') || '').trim().slice(0, 80), date, inflow: fd.get('inflow') === 'on' };
+    const before = JSON.stringify(S.spends);
+    if (existing) S.spends = S.spends.map(s => s.id === rec.id ? rec : s); else S.spends.push(rec);
+    S.meta.lastCat = rec.cat;
+    commit();
+    const c = compute();
+    toast(existing ? 'Saved' : `Logged ${rec.inflow ? '+' : ''}${money(rec.amount)}${c ? ` · ${c.safe < 0 ? 'over plan ' + money(-c.safe, true) : money(c.safe, true) + ' left'}` : ''}`, () => { S.spends = JSON.parse(before); commit(); });
+  });
+}
+
+function formSheet(title, fields, values, onSave, onDelete) {
+  openSheet(`<form id="genf" autocomplete="off"><h2>${title}</h2>
+    ${fields.map(f => `<label class="field"><span>${f.label}</span><input name="${f.name}" ${f.type ? `type="${f.type}"` : ''} ${f.num ? 'inputmode="decimal"' : ''} ${f.min ? `min="${f.min}" max="${f.max}"` : ''} value="${esc(values[f.name] ?? '')}" placeholder="${esc(f.ph || '')}" ${f.focus ? 'autofocus' : ''} ${f.optional ? '' : 'required'}></label>`).join('')}
+    <div class="stack" style="margin-top:16px"><button class="btn primary block" type="submit" style="min-height:52px">Save</button>
+    ${onDelete ? `<button class="btn ghost block" type="button" id="delbtn">Delete</button>` : `<button class="btn quiet block" type="button" data-act="close">Cancel</button>`}</div></form>`, fd => onSave(fd));
+  if (onDelete) $('#delbtn').onclick = () => { closeSheet(); onDelete(); };
+}
+function editBill(b) {
+  const isNew = !b; b = b || { id:uid(), name:'', amount:'', day:'' };
+  const st = !isNew && billStatus(b);
+  formSheet(isNew ? 'New bill' : esc(b.name), [
+    { name:'name', label:'Bill', ph:'Phone', focus:isNew },
+    { name:'amount', label:'Amount', num:true, ph:'45' },
+    { name:'day', label:'Due day of the month', type:'number', min:1, max:31, ph:'8' },
+  ], b, fd => {
+    const nb = { id:b.id, name:fd.get('name').trim().slice(0, 40) || 'Bill', amount:r2(num(fd.get('amount'))), day:Math.min(31, Math.max(1, parseInt(fd.get('day'), 10) || 1)) };
+    S.bills = isNew ? [...S.bills, nb] : S.bills.map(x => x.id === nb.id ? nb : x); commit();
+    if (isNew) toast(`${nb.name} added`);
+  }, isNew ? null : () => { const before = S.bills; S.bills = S.bills.filter(x => x.id !== b.id); commit(); toast('Bill removed', () => { S.bills = before; commit(); }); });
+  if (!isNew) {
+    const f = $('#genf h2');
+    f.insertAdjacentHTML('afterend', `<div class="card soft" style="margin:12px 0 0;padding:14px"><div class="row"><span>${nice(st.date)} · <span class="pill ${st.key}">${st.text}</span></span>
+      <button type="button" class="btn sm ${st.paid ? '' : 'primary'}" id="paidbtn">${st.paid ? 'Not paid yet' : 'Mark paid'}</button></div></div>`);
+    $('#paidbtn').onclick = () => togglePaid(b, st);
+  }
+}
+function togglePaid(b, st) {
+  const k = `${b.id}|${ym(st.date)}`;
+  const flip = () => { if (S.paid[k]) delete S.paid[k]; else S.paid[k] = TODAY; };
+  flip(); closeSheet(); commit();
+  toast(S.paid[k] ? `${b.name} paid. Nice.` : `${b.name} marked not paid yet`, () => { flip(); commit(); });
+}
+function editYearly(y) {
+  const isNew = !y; y = y || { id:uid(), name:'', amount:'' };
+  formSheet(isNew ? 'Once-a-year cost' : esc(y.name), [
+    { name:'name', label:'What', ph:'Car registration', focus:isNew },
+    { name:'amount', label:'Per year', num:true, ph:'240' },
+  ], y, fd => { const n = { id:y.id, name:fd.get('name').trim().slice(0, 40), amount:r2(num(fd.get('amount'))) }; S.yearly = isNew ? [...S.yearly, n] : S.yearly.map(x => x.id === n.id ? n : x); commit(); },
+  isNew ? null : () => { S.yearly = S.yearly.filter(x => x.id !== y.id); commit(); });
+}
+function editGoal(g) {
+  const isNew = !g; g = g || { id:uid(), name:'', target:'', saved:'', per:'', since:TODAY, created:TODAY };
+  const vals = isNew ? g : { ...g, saved: r2(goalSaved(g)) };
+  formSheet(isNew ? 'New goal' : esc(g.name), [
+    { name:'name', label:'Saving for', ph:'Cushion', focus:isNew },
+    { name:'target', label:'Goal amount', num:true, ph:'1000' },
+    { name:'saved', label:'Saved so far', num:true, ph:'0', optional:true },
+    { name:'per', label:'Put aside every payday', num:true, ph:'50' },
+  ], vals, fd => {
+    const n = { id:g.id, name:fd.get('name').trim().slice(0, 40), target:num(fd.get('target')) || 1, saved:num(fd.get('saved')), per:num(fd.get('per')), since:TODAY, created:g.created || TODAY };
+    S.goals = isNew ? [...S.goals, n] : S.goals.map(x => x.id === n.id ? n : x); commit();
+  }, isNew ? null : () => { S.goals = S.goals.filter(x => x.id !== g.id); commit(); });
+}
+function editDebt(d) {
+  const isNew = !d; d = d || { id:uid(), name:'', start:'', balance:'' };
+  formSheet(isNew ? 'New debt' : esc(d.name), [
+    { name:'name', label:'Name', ph:'Credit card', focus:isNew },
+    { name:'start', label:'Starting balance', num:true, ph:'2400' },
+    { name:'balance', label:'Balance now', num:true, ph:'2400' },
+  ], d, fd => { const n = { id:d.id, name:fd.get('name').trim().slice(0, 40), start:num(fd.get('start')), balance:num(fd.get('balance')) }; S.debts = isNew ? [...S.debts, n] : S.debts.map(x => x.id === n.id ? n : x); commit(); },
+  isNew ? null : () => { S.debts = S.debts.filter(x => x.id !== d.id); commit(); });
+}
+function payDebt(d) {
+  formSheet(`Paid on ${esc(d.name)}`, [{ name:'amount', label:'How much?', num:true, ph:'60', focus:true }], {}, fd => {
+    const a = num(fd.get('amount')); const before = d.balance;
+    d.balance = r2(Math.max(0, num(d.balance) - a)); commit();
+    toast(`${money(a)} off ${d.name}. Every bit counts.`, () => { d.balance = before; commit(); });
+  });
+}
+function showInstall() {
+  openSheet(`<h2>Put it on your home screen</h2>
+    <p class="mu" style="margin-top:6px">It opens full-screen like an app and works with no signal after the first open. On iPhone it also keeps your numbers safer.</p>
+    <div class="lab" style="margin-top:16px">iPhone · Safari</div>
+    <ol class="steps"><li>Open your Doable link in Safari (not inside the Etsy app).</li><li>Tap the Share button, the square with an arrow.</li><li>Scroll and tap “Add to Home Screen”, then “Add”.</li></ol>
+    <div class="lab" style="margin-top:12px">Android · Chrome</div>
+    <ol class="steps"><li>Open your Doable link in Chrome.</li><li>Tap the ⋮ menu, then “Add to Home screen” or “Install app”.</li></ol>
+    ${deferredInstall ? `<button class="btn primary block" data-act="install-now" style="margin-top:12px">Install now</button>` : ''}
+    <button class="btn block" data-act="close" style="margin-top:12px">Got it</button>`);
+}
+function confirmSheet(title, text, yes, onYes, extra = '') {
+  openSheet(`<h2>${title}</h2><p class="mu" style="margin-top:8px">${text}</p>${extra}
+    <div class="stack" style="margin-top:16px"><button class="btn primary block" id="yesbtn">${yes}</button><button class="btn block" data-act="close">Not now</button></div>`);
+  $('#yesbtn').onclick = () => { onYes(); };
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg, undo) {
+  const t = $('#toast'); t.querySelector('span').textContent = msg;
+  const b = t.querySelector('button'); b.classList.toggle('hide', !undo);
+  b.onclick = () => { clearTimeout(toastTimer); t.classList.remove('on'); undo && undo(); };
+  t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), undo ? 6000 : 4200);
+}
+
+/* ---------- Files: backup / restore / CSV ---------- */
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+async function deliver(name, text, type) {
+  // iPhone/iPad: the share sheet ("Save to Files") is the reliable way out of a home-screen app.
+  if (isIOS() && navigator.canShare && typeof File === 'function') {
+    try {
+      const file = new File([text], name, { type });
+      if (navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return true; }
+    } catch (e) { if (e && e.name === 'AbortError') return false; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  return true;
+}
+async function backup() {
+  const copy = { app:'doable-budget', exported:new Date().toISOString(), ...S, meta:{ ...S.meta, lastBackup:TODAY, peek:false } };
+  const ok = await deliver(`doable-budget-backup-${TODAY}.json`, JSON.stringify(copy, null, 2), 'application/json');
+  if (!ok) return toast('No copy saved. That’s okay, you can do it anytime.');
+  S.meta.lastBackup = TODAY; S.meta.backupSnooze = null; commit();
+  toast('Copy saved. Keep it somewhere safe: Files, Drive, or email it to yourself.');
+}
+async function exportCsv() {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = [['Date','What','Amount','Group','Type']].concat([...S.spends].sort((a, b) => a.date.localeCompare(b.date)).map(x =>
+    [x.date, x.note, num(x.amount).toFixed(2), (S.cats.find(c => c.id === x.cat) || {}).name || '', x.inflow ? 'Money in' : 'Spend']));
+  const ok = await deliver(`doable-spending-${TODAY}.csv`, '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n'), 'text/csv');
+  if (ok) toast(`Exported ${plural(S.spends.length, 'line', 'lines')} of spending`);
+}
+function restore(file) {
+  const r = new FileReader();
+  r.onload = () => {
+    let data;
+    try { data = JSON.parse(r.result); } catch (e) { data = null; }
+    if (!data || data.app !== 'doable-budget' || typeof data.v !== 'number') return toast('That file isn’t a Doable backup. Nothing changed.');
+    if (data.v > SCHEMA) return toast('That backup is from a newer version. Close the app, open it again to update, then restore.');
+    const incoming = migrate(data);
+    if (!incoming) return toast('That backup couldn’t be read. Nothing changed.');
+    const savedDay = data.exported && !isNaN(new Date(data.exported)) ? iso(new Date(data.exported)) : incoming.meta.lastBackup;
+    const when = isoDate(savedDay) ? ` It was saved on ${nice(savedDay)}.` : '';
+    const replacing = S.meta.welcomed && !S.demo && hasData();
+    openSheet(`<h2>Restore this backup?</h2>
+      <p style="margin-top:10px" id="restore-summary">This file has ${plural(incoming.spends.length, 'spend', 'spends')}, ${plural(incoming.bills.length, 'bill', 'bills')}. Replace current data?</p>
+      <p class="small">${when.trim()} ${replacing ? 'What’s on this device now will be replaced. You can undo right after.' : ''}${incoming.demo ? ' This file has example numbers from the demo.' : ''}</p>
+      <div class="stack" style="margin-top:16px"><button class="btn primary block" id="restore-yes">Replace current data</button><button class="btn block" data-act="close">Keep what I have</button></div>`);
+    $('#restore-yes').onclick = () => {
+      const before = JSON.stringify(S), wasPeek = peeking();
+      if (wasPeek) removeKey(EX_KEY);
+      S = incoming; S.meta.welcomed = true; S.meta.peek = false;
+      if (!IS_DEMO) S.demo = false; else { S.demo = true; S.meta.demoDay = TODAY; }
+      closeSheet(); UI.tab = 'today'; location.hash = 'today'; commit();
+      toast('Backup restored', wasPeek ? null : () => { S = migrate(JSON.parse(before)); commit(); });
+    };
+  };
+  r.onerror = () => toast('That file couldn’t be opened. Nothing changed.');
+  r.readAsText(file);
+}
+
+/* ---------- Examples (peek) inside your own copy ---------- */
+function startPeek() {
+  const own = S.meta.welcomed ? S : { ...blank(), theme:S.theme };
+  own.meta.welcomed = true; own.meta.peek = true;
+  writeKey(KEY, own);
+  const th = S.theme; S = demo(); S.theme = th;
+  UI.tab = 'today'; location.hash = 'today'; commit();
+}
+function endPeek() {
+  const th = S.theme;
+  const own = migrate(readKey(KEY)) || blank();
+  removeKey(EX_KEY);
+  own.meta.peek = false; own.meta.welcomed = true; own.theme = th;
+  S = own; closeSheet();
+  UI.tab = S.settings.pay ? 'today' : 'setup'; UI.firstSetup = !S.settings.pay;
+  location.hash = UI.tab; commit();
+}
+
+/* ---------- Commit & events ---------- */
+function commit() {
+  if (!S.meta.dataSince && hasData() && !S.demo) S.meta.dataSince = TODAY;
+  save(); render();
+}
+let UI = { tab: (location.hash.slice(1) || 'today'), math: false, firstSetup: false };
+
+document.addEventListener('click', e => {
+  const pick = e.target.closest('[data-cat-pick]');
+  if (pick) {
+    document.querySelectorAll('[data-cat-pick]').forEach(b => b.setAttribute('aria-pressed', b === pick));
+    $('#logf [name=cat]').value = pick.dataset.catPick; return;
+  }
+  if (e.target.id === 'scrim') return closeSheet();
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const id = el.dataset.id, act = el.dataset.act;
+  const acts = {
+    log: () => openLog(),
+    close: () => closeSheet(),
+    theme: () => { S.theme = S.theme === 'light' ? 'dark' : 'light'; commit(); },
+    'set-theme': () => { S.theme = el.dataset.v; commit(); },
+    math: () => { UI.math = !UI.math; render(); },
+    carry: () => { S.settings.carry = !S.settings.carry; commit(); toast(S.settings.carry ? 'Leftovers carry over again' : 'Each paycheck starts clean now'); },
+    checkin: () => { if (S.checkins[TODAY]) delete S.checkins[TODAY]; else S.checkins[TODAY] = true; commit(); },
+    backup, csv: exportCsv,
+    restore: () => { const f = $('#restoreFile'); f.value = ''; f.click(); },
+    'snooze-backup': () => { S.meta.backupSnooze = addDays(TODAY, 3); commit(); toast('I’ll ask again in a few days'); },
+    install: showInstall,
+    'install-now': () => { deferredInstall && deferredInstall.prompt(); closeSheet(); },
+    'bill-new': () => editBill(), 'bill-tap': () => editBill(S.bills.find(b => b.id === id)),
+    'yearly-new': () => editYearly(), 'yearly-tap': () => editYearly(S.yearly.find(y => y.id === id)),
+    'spend-tap': () => openLog(S.spends.find(s => s.id === id)),
+    'spend-del': () => { const before = S.spends; S.spends = S.spends.filter(s => s.id !== id); closeSheet(); commit(); toast('Line deleted', () => { S.spends = before; commit(); }); },
+    'goal-new': () => editGoal(), 'goal-tap': () => editGoal(S.goals.find(g => g.id === id)),
+    'debt-new': () => editDebt(), 'debt-tap': () => editDebt(S.debts.find(d => d.id === id)),
+    'debt-pay': () => payDebt(S.debts.find(d => d.id === id)),
+    freq: () => { S.settings.freq = el.dataset.v; scheduleChanged(); commit(); },
+    fresh: () => { const before = S.settings.freshFrom; S.settings.freshFrom = TODAY; commit(); toast('Fresh start from today. No catch-up.', () => { S.settings.freshFrom = before; commit(); }); },
+    'fresh-undo': () => { S.settings.freshFrom = null; commit(); },
+    'see-number': () => { UI.firstSetup = false; },
+    'welcome-demo': () => startPeek(),
+    'welcome-mine': () => { S = { ...blank(), theme:S.theme }; S.meta.welcomed = true; UI.tab = 'setup'; UI.firstSetup = true; location.hash = 'setup'; commit(); },
+    'show-demo': () => startPeek(),
+    'start-mine': () => confirmSheet(mineIsEmpty() ? 'Clear the examples?' : 'Back to your numbers?',
+      mineIsEmpty() ? 'All example bills, spending and goals go away. You start with a clean budget.' : 'The examples go away and your own numbers come back, just as you left them.',
+      mineIsEmpty() ? 'Yes, start mine' : 'Yes, take me back', endPeek),
+    'demo-reset': () => { const th = S.theme; S = demo(); S.theme = th; closeSheet(); commit(); toast('Examples are back'); },
+    erase: () => IS_DEMO ? acts['demo-reset']()
+      : confirmSheet('Erase everything?', 'This removes your budget from this device. If you might want it back, save a backup file first.', 'Erase everything', () => {
+          removeKey(KEY); removeKey(EX_KEY); const th = S.theme; S = blank(); S.theme = th; closeSheet(); UI.tab = 'today'; history.replaceState(null, '', location.pathname + location.search); render(); toast('Erased. A clean start.');
+        }, `<div class="stack" style="margin-top:12px"><button class="btn" data-act="backup">Save a backup file first</button></div>`),
+  };
+  if (acts[act]) { if (el.tagName !== 'A' || act !== 'see-number') e.preventDefault(); acts[act](); }
+});
+function scheduleChanged() {
+  // A new pay schedule starts its own first paycheck: no leftover is carried across the change.
+  const st = S.settings;
+  if (st.startedOn) { const start = paydayOnOrBefore(TODAY); if (start > st.startedOn) st.startedOn = start; }
+}
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (!sheetSubmit) return;
+  const ok = sheetSubmit(new FormData(e.target));
+  if (ok !== false) closeSheet();
+});
+function applySetting(t) {
+  if (t.dataset.cat !== undefined) { const c = S.cats[+t.dataset.cat]; c.name = t.value.trim().slice(0, 18) || c.name; return commit(); }
+  const k = t.dataset.set; if (!k) return;
+  const st = S.settings;
+  if (k === 'pay') { st.pay = r2(Math.abs(num(t.value))); if (st.pay && !st.startedOn) st.startedOn = TODAY; }
+  else if (k === 'currency') st.currency = t.value.trim().slice(0, 4) || '$';
+  else if (k === 'anchor') { st.anchor = isoDate(t.value) ? t.value : TODAY; scheduleChanged(); }
+  else if (k === 'semi0' || k === 'semi1') { st.semi[+k.slice(-1)] = Math.min(31, Math.max(1, parseInt(t.value, 10) || 1)); scheduleChanged(); }
+  commit();
+}
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'restoreFile') { if (t.files && t.files[0]) restore(t.files[0]); return; }
+  applySetting(t);
+});
+document.addEventListener('keydown', e => {
+  const sh = $('#sheet');
+  if (e.key === 'Escape' && sh.classList.contains('on')) { closeSheet(); return; }
+  if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-set],[data-cat]')) { e.preventDefault(); e.target.blur(); return; }
+  if (e.key === 'Tab' && sh.classList.contains('on')) {            // keep keyboard focus inside the open sheet
+    const f = [...sh.querySelectorAll('button, [href], input, select')].filter(x => !x.disabled && x.type !== 'hidden' && x.offsetParent !== null);
+    if (!f.length) return;
+    const first = f[0], lastEl = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); lastEl.focus(); }
+    else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); first.focus(); }
+  }
+});
+addEventListener('hashchange', () => {
+  UI.tab = location.hash.slice(1) || 'today';
+  closeSheet(); render(); scrollTo(0, 0);
+  const h = document.querySelector('#root h1'); if (h && document.activeElement === document.body) h.focus({ preventScroll: true });
+});
+/* The app may stay open past midnight: pick up the new day when it comes back into view */
+function refreshDay() { const t = realToday(); if (t !== TODAY) { TODAY = t; if (IS_DEMO && S.meta.demoDay !== TODAY) { const th = S.theme; S = demo(); S.theme = th; save(); } render(); } }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDay(); });
+addEventListener('focus', refreshDay);
+/* Another tab changed the numbers: show them */
+addEventListener('storage', e => { if (e.key !== activeKey() || !e.newValue) return; try { const n = migrate(JSON.parse(e.newValue)); if (n) { S = n; render(); } } catch (err) { /* ignore a half-written value */ } });
+
+/* ---------- Install / offline ---------- */
+let deferredInstall = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+if (BUILD.sw && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => { /* still works online */ }));
+}
+if (!IS_DEMO) { try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* not supported */ } }
+
+let S = blank();
+S = boot();
+if (UI.tab === 'setup' && !S.settings.pay && S.meta.welcomed) UI.firstSetup = true;
+render();
+</script>
+</body>
+</html>
