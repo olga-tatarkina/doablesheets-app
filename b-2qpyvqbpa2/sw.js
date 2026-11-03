@@ -1,6 +1,6 @@
 /* Doable Budget: service worker. Cache-first app shell, so the app opens with no signal after the first visit.
    build.js fills in VERSION and SHELL. A new VERSION = a new cache; old caches are removed on activate. */
-const VERSION = '1.0.0-35e4eab1';
+const VERSION = '1.0.0-602662ac';
 const CACHE = 'doable-budget-' + VERSION;
 const SHELL = ["./","index.html","manifest.webmanifest","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-192.png","icons/icon-maskable-512.png","icons/apple-touch-icon.png","icons/favicon-32.png","fonts/instrument-serif.woff2","fonts/instrument-serif-italic.woff2","fonts/inter-var.woff2"];
 
